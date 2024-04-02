@@ -20,7 +20,7 @@ class AppDimens {
   static const double defaultCustomPaddingSwitch = 15;
   static const double defaultSizeSwitch = 40;
 
-  static const double circularProfileSize = 120;
+  static const double circularProfileSize = 40;
 
   static double heightButtomImage(BuildContext context) =>
       MediaQuery.of(context).size.height / 3;

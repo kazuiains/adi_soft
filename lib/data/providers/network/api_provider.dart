@@ -20,9 +20,9 @@ class APIProvider {
       dio = Dio(
         BaseOptions(
           baseUrl: baseUrl ?? AppConfig.instance!.baseUrl,
-          connectTimeout: connectTimeout ?? const Duration(minutes: 3),
-          receiveTimeout: receiveTimeout ?? const Duration(minutes: 3),
-          sendTimeout: sendTimeout ?? const Duration(minutes: 3),
+          connectTimeout: connectTimeout ?? const Duration(seconds: 30),
+          receiveTimeout: receiveTimeout ?? const Duration(seconds: 30),
+          sendTimeout: sendTimeout ?? const Duration(seconds: 30),
         ),
       )..httpClientAdapter;
     }
