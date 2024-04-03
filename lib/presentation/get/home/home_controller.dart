@@ -32,6 +32,8 @@ class HomeController extends GetxController {
   StreamSubscription<InternetStatus>? connectionListener;
   final formKey = GlobalKey<FormState>();
 
+  final TextEditingController searchETCtrl = TextEditingController();
+
   final String pageGetXId = "pageGetXId";
 
   final _users = <AppFeature>[].obs;
@@ -177,6 +179,7 @@ class HomeController extends GetxController {
     bool? hideError,
     bool? hideFailed,
     bool? useBasicHandleFailed,
+    bool search = false,
   }) {
     if (index == 2) {
       citiesUseCase.execute().then((value) {
@@ -214,24 +217,36 @@ class HomeController extends GetxController {
         if (value.isNotEmpty) {
           List<AppFeature> data = value;
 
-          List<AppFeature> sort = value;
+          if (!search) {
+            List<AppFeature> sort = value;
 
-          //sort
-          if (sortMenuSelected.id == "1") {
-            sort.sort((a, b) => b.name!.toLowerCase().compareTo(a.name!.toLowerCase()));
-          } else if (sortMenuSelected.id == "2") {
-            sort.sort((a, b) => a.city!.toLowerCase().compareTo(b.city!.toLowerCase()));
-          } else if (sortMenuSelected.id == "3") {
-            sort.sort((a, b) => b.city!.toLowerCase().compareTo(a.city!.toLowerCase()));
-          } else {
-            sort.sort((a, b) => a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
-          }
+            //sort
+            if (sortMenuSelected.id == "1") {
+              sort.sort((a, b) => b.name!.toLowerCase().compareTo(a.name!.toLowerCase()));
+            } else if (sortMenuSelected.id == "2") {
+              sort.sort((a, b) => a.city!.toLowerCase().compareTo(b.city!.toLowerCase()));
+            } else if (sortMenuSelected.id == "3") {
+              sort.sort((a, b) => b.city!.toLowerCase().compareTo(a.city!.toLowerCase()));
+            } else {
+              sort.sort((a, b) => a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
+            }
 
-          //filter
-          if (cityMenuSelected.id != "0") {
-            data = sort.where((i) => i.city == cityMenuSelected.name).toList();
+            //filter
+            if (cityMenuSelected.id != "0") {
+              data = sort.where((i) => i.city == cityMenuSelected.name).toList();
+            } else {
+              data = sort;
+            }
           } else {
-            data = sort;
+            String search = searchETCtrl.text;
+            data = data
+                .where((i) =>
+                    i.name!.contains(search) ||
+                    i.address!.contains(search) ||
+                    i.phoneNumber!.contains(search) ||
+                    i.email!.contains(search) ||
+                    i.city!.contains(search))
+                .toList();
           }
 
           setUserData(data);

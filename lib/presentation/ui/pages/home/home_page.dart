@@ -19,7 +19,26 @@ class HomePage extends GetView<HomeController> {
     return Scaffold(
       appBar: BaseTopAppBarView.whiteAppBar(
         context,
-        title: const Text("Users"),
+        title: TextField(
+          controller: controller.searchETCtrl,
+          decoration: InputDecoration(
+            hintText: "Search...",
+            border: InputBorder.none,
+            suffixIcon: IconButton(
+              icon: const Icon(
+                Icons.search_rounded,
+                color: Colors.black,
+              ),
+              onPressed: () => controller.onCall(
+                search: true,
+              ),
+            ),
+          ),
+          textInputAction: TextInputAction.search,
+          onSubmitted: (value) => controller.onCall(
+            search: true,
+          ),
+        ),
         paddingRight: 0,
         actions: [
           ConstrainedBox(
