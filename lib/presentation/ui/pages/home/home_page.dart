@@ -54,6 +54,10 @@ class HomePage extends GetView<HomeController> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () =>controller.onRoute(),
+        child: const Icon(Icons.add),
+      ),
       body: GetBuilder<HomeController>(
         id: controller.pageGetXId,
         builder: (controller) {

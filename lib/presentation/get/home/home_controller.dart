@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:adi_soft/app/config/app_strings.dart';
 import 'package:adi_soft/app/config/constants/assets_constants.dart';
 import 'package:adi_soft/app/config/localizations/translation_key.dart';
+import 'package:adi_soft/app/config/routes/app_routes.dart';
 import 'package:adi_soft/app/config/styles/shape_styles.dart';
 import 'package:adi_soft/app/config/styles/text_styles.dart';
 import 'package:adi_soft/app/exception/app_exception.dart';
@@ -275,7 +276,14 @@ class HomeController extends GetxController {
   onRoute({
     int? route,
     int? index,
-  }) {}
+  }) async{
+    var result =  await Get.toNamed(
+      AppRoutes.addUser,
+    );
+    if(result != null){
+      onCall();
+    }
+  }
 
   onFilter() async {
     final result = await Get.bottomSheet(
