@@ -3,20 +3,30 @@ import 'dart:async';
 import 'package:adi_soft/app/config/app_strings.dart';
 import 'package:adi_soft/app/config/constants/assets_constants.dart';
 import 'package:adi_soft/app/config/localizations/translation_key.dart';
+import 'package:adi_soft/app/config/styles/shape_styles.dart';
+import 'package:adi_soft/app/config/styles/text_styles.dart';
 import 'package:adi_soft/app/exception/app_exception.dart';
 import 'package:adi_soft/app/types/snack_bar_type.dart';
+import 'package:adi_soft/app/utils/validators/form_validator.dart';
 import 'package:adi_soft/domain/entities/feature/app_feature.dart';
+import 'package:adi_soft/domain/entities/widget/menu_data.dart';
 import 'package:adi_soft/domain/use_cases/network/app/cities_use_case.dart';
+import 'package:adi_soft/domain/use_cases/network/app/users_use_case.dart';
+import 'package:adi_soft/presentation/ui/widgets/base/actions/base_buttons_view.dart';
 import 'package:adi_soft/presentation/ui/widgets/base/communication/base_snackbar_view.dart';
+import 'package:adi_soft/presentation/ui/widgets/base/containment/base_spacer_view.dart';
+import 'package:adi_soft/presentation/ui/widgets/base/selection/base_menus_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class HomeController extends GetxController {
-  final UsersUseCase useCase;
+  final UsersUseCase usersUseCase;
+  final CitiesUseCase citiesUseCase;
 
   HomeController({
-    required this.useCase,
+    required this.usersUseCase,
+    required this.citiesUseCase,
   });
 
   StreamSubscription<InternetStatus>? connectionListener;
@@ -25,6 +35,11 @@ class HomeController extends GetxController {
   final String pageGetXId = "pageGetXId";
 
   final _users = <AppFeature>[].obs;
+  final _sortMenuList = <MenuData>[].obs;
+  final _cityMenuList = <MenuData>[].obs;
+
+  final _sortMenuSelected = MenuData().obs;
+  final _cityMenuSelected = MenuData().obs;
 
   final _loadingPage = true.obs;
   final _errorPage = false.obs;
@@ -36,8 +51,29 @@ class HomeController extends GetxController {
 
   final _errorPageCode = 0.obs;
 
+  ///set user data
   setUserData(List<AppFeature> value) {
     _users.value = value;
+  }
+
+  ///set sort data
+  setSortData(List<MenuData> value) {
+    _sortMenuList.value = value;
+  }
+
+  ///set city data
+  setCityData(List<MenuData> value) {
+    _cityMenuList.value = value;
+  }
+
+  ///select sort data
+  selectSortMenu(MenuData value) {
+    _sortMenuSelected.value = value;
+  }
+
+  //select city data
+  selectCityMenu(MenuData value) {
+    _cityMenuSelected.value = value;
   }
 
   ///set loading
@@ -68,6 +104,14 @@ class HomeController extends GetxController {
 
   List<AppFeature> get items => _users.toList();
 
+  List<MenuData> get sortMenuList => _sortMenuList.toList();
+
+  List<MenuData> get cityMenuList => _cityMenuList.toList();
+
+  MenuData get sortMenuSelected => _sortMenuSelected.value;
+
+  MenuData get cityMenuSelected => _cityMenuSelected.value;
+
   bool get isLoadingPage => _loadingPage.value;
 
   bool get isErrorPage => _errorPage.value;
@@ -77,8 +121,34 @@ class HomeController extends GetxController {
   int get errorPageCode => _errorPageCode.value;
 
   @override
+  void onInit() {
+    super.onInit();
+    setSortData([
+      MenuData(
+        id: "0",
+        name: "Nama (A-Z)",
+      ),
+      MenuData(
+        id: "1",
+        name: "Nama (Z-A)",
+      ),
+      MenuData(
+        id: "2",
+        name: "Kota (A-Z)",
+      ),
+      MenuData(
+        id: "3",
+        name: "Kota (Z-A)",
+      ),
+    ]);
+
+    selectSortMenu(sortMenuList.first);
+  }
+
+  @override
   void onReady() {
     super.onReady();
+    onCall(index: 2);
     onCall();
   }
 
@@ -90,6 +160,7 @@ class HomeController extends GetxController {
     if (refreshPage) {
       loadingPage();
     }
+    onCall(index: 2);
     await onCall();
   }
 
@@ -107,26 +178,82 @@ class HomeController extends GetxController {
     bool? hideFailed,
     bool? useBasicHandleFailed,
   }) {
-    useCase.execute().then((value) {
-      if (value.isNotEmpty) {
-        setUserData(value);
-        pageLoadSuccess();
-      } else {
-        pageLoadFail(
-          errorPageCode: 2,
+    if (index == 2) {
+      citiesUseCase.execute().then((value) {
+        List<MenuData> data = [];
+        for (var i in value) {
+          data.add(
+            MenuData(
+              id: i.id,
+              name: i.name,
+            ),
+          );
+        }
+        data.insert(
+          0,
+          MenuData(
+            id: "0",
+            name: "Seluruh Kota",
+          ),
         );
-      }
-    }).onError<Exception>((error, stackTrace) {
-      if (error is AppException) {
-        errorHandlerPage(
-          error,
+        setCityData(data);
+        selectCityMenu(cityMenuList.first);
+      }).onError<Exception>((error, stackTrace) {
+        setCityData(
+          [
+            MenuData(
+              id: "0",
+              name: "Seluruh Kota",
+            ),
+          ],
         );
-      } else {
-        pageLoadFail(
-          errorPageCode: 3,
-        );
-      }
-    });
+        selectCityMenu(cityMenuList.first);
+      });
+    } else {
+      usersUseCase.execute().then((value) {
+        if (value.isNotEmpty) {
+          List<AppFeature> data = value;
+
+          List<AppFeature> sort = value;
+
+          //sort
+          if (sortMenuSelected.id == "1") {
+            sort.sort((a, b) => b.name!.toLowerCase().compareTo(a.name!.toLowerCase()));
+          } else if (sortMenuSelected.id == "2") {
+            sort.sort((a, b) => a.city!.toLowerCase().compareTo(b.city!.toLowerCase()));
+          } else if (sortMenuSelected.id == "3") {
+            sort.sort((a, b) => b.city!.toLowerCase().compareTo(a.city!.toLowerCase()));
+          } else {
+            sort.sort((a, b) => a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
+          }
+
+          //filter
+          if (cityMenuSelected.id != "0") {
+            data = sort.where((i) => i.city == cityMenuSelected.name).toList();
+          } else {
+            data = sort;
+          }
+
+          setUserData(data);
+
+          pageLoadSuccess();
+        } else {
+          pageLoadFail(
+            errorPageCode: 2,
+          );
+        }
+      }).onError<Exception>((error, stackTrace) {
+        if (error is AppException) {
+          errorHandlerPage(
+            error,
+          );
+        } else {
+          pageLoadFail(
+            errorPageCode: 3,
+          );
+        }
+      });
+    }
   }
 
   ///for change route
@@ -134,6 +261,110 @@ class HomeController extends GetxController {
     int? route,
     int? index,
   }) {}
+
+  onFilter() async {
+    final result = await Get.bottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: ShapeStyles.rounded(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(15),
+          topRight: Radius.circular(15),
+        ),
+      ),
+      Wrap(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(
+                  top: 32,
+                  bottom: 32,
+                  left: 16,
+                  right: 16,
+                ),
+                child: Text(
+                  "Filter dan Sort",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 20,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    BaseMenusView.basicFrameSingleTP(
+                      showSearchBox: true,
+                      label: "Urutkan berdasarkan:",
+                      listItem: sortMenuList,
+                      callback: (value) => value != null ? selectSortMenu(value) : null,
+                      value: FormValidator.checkValueDropDown<MenuData>(
+                        value: sortMenuSelected,
+                        valueName: sortMenuSelected.name,
+                      ),
+                    ),
+                    BaseSpacerView.heightMedium,
+                    BaseMenusView.basicFrameSingleTP(
+                      showSearchBox: true,
+                      label: "Data berdasarkan:",
+                      listItem: cityMenuList,
+                      callback: (value) => value != null ? selectCityMenu(value) : null,
+                      value: FormValidator.checkValueDropDown<MenuData>(
+                        value: cityMenuSelected,
+                        valueName: cityMenuSelected.name,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              BaseSpacerView.heightLarge,
+              Container(
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                ),
+                width: double.infinity,
+                child: BaseButtonView.flatButton(
+                  label: "Tampilkan Filter",
+                  textStyle: TextStyles.bottomSheetButtonText(),
+                  radiusSize: 15,
+                  onPressed: () => Get.back(
+                    result: true,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                width: double.infinity,
+                child: BaseButtonView.flatButton(
+                    label: "Hapus Filter",
+                    textStyle: TextStyles.bottomSheetButtonText(),
+                    radiusSize: 15,
+                    onPressed: () {
+                      Get.back(
+                        result: true,
+                      );
+                      selectCityMenu(cityMenuList.first);
+                      selectSortMenu(sortMenuList.first);
+                    },
+                    color: Colors.grey.withOpacity(0.1),
+                    textColor: Colors.black),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result!) {
+      await onCall();
+    }
+  }
 
   ///to check the internet connection on the device
   Future<bool> isConnected() async {

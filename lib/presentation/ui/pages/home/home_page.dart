@@ -25,7 +25,7 @@ class HomePage extends GetView<HomeController> {
           ConstrainedBox(
             constraints: const BoxConstraints.tightFor(width: 56),
             child: IconButton(
-              onPressed: () {},
+              onPressed: () => controller.onFilter(),
               icon: Image.asset(
                 AssetsConstants.iconSort,
                 width: 20,
@@ -52,7 +52,7 @@ class HomePage extends GetView<HomeController> {
                     var data = controller.items[index];
                     return ListTile(
                       title: Text(data.name ?? AppStrings.defaultNullValue),
-                      subtitle: Text(data.phoneNumber ?? AppStrings.defaultNullValue),
+                      subtitle: Text("${data.city ?? AppStrings.defaultNullValue} | ${data.phoneNumber ?? AppStrings.defaultNullValue}"),
                       leading: ClipRRect(
                         borderRadius: const BorderRadius.all(
                           Radius.circular(100.0),
