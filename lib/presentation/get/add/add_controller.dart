@@ -5,8 +5,10 @@ import 'package:adi_soft/domain/entities/widget/menu_data.dart';
 import 'package:adi_soft/domain/use_cases/network/app/add_city_use_case.dart';
 import 'package:adi_soft/domain/use_cases/network/app/add_user_use_case.dart';
 import 'package:adi_soft/domain/use_cases/network/app/cities_use_case.dart';
+import 'package:adi_soft/presentation/ui/widgets/base/communication/base_loading_view.dart';
 import 'package:adi_soft/presentation/ui/widgets/base/communication/base_snackbar_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
@@ -42,6 +44,7 @@ class AddController extends GetxController {
   //select city data
   selectCityMenu(MenuData value) {
     _cityMenuSelected.value = value;
+    checkAllField();
   }
 
   ///set enable button
@@ -66,7 +69,13 @@ class AddController extends GetxController {
   onSubmit({
     BuildContext? context,
   }) {
-    callWhenConnected(() {});
+    callWhenConnected(() {
+      loading(true);
+      if (cityMenuSelected.id == "0") {
+        onCall(index: 2);
+      }
+      onCall();
+    });
   }
 
   ///to call a function related to processes and data
@@ -116,16 +125,22 @@ class AddController extends GetxController {
     } else {
       addUserUseCase
           .execute(
-            AppFeature(
-              name: nameETCtrl.text,
-              email: emailETCtrl.text,
-              address: addressETCtrl.text,
-              phoneNumber: phoneNumberETCtrl.text,
-              city: cityMenuSelected.id == "0" ? otherETCtrl.text : cityMenuSelected.name,
-            ),
-          )
-          .then((value) => Get.back(result: true))
-          .onError<Exception>((error, stackTrace) => noTitleSnackBar(snackBarType: SnackBarType.error, message: "Terjadi kesalahan"));
+        AppFeature(
+          name: nameETCtrl.text,
+          email: emailETCtrl.text,
+          address: addressETCtrl.text,
+          phoneNumber: phoneNumberETCtrl.text,
+          city: cityMenuSelected.id == "0" ? otherETCtrl.text : cityMenuSelected.name,
+        ),
+      )
+          .then((value) {
+        Get.back(result: true);
+        loading(false);
+        noTitleSnackBar(snackBarType: SnackBarType.success, message: "Berhasil Menambah User");
+      }).onError<Exception>((error, stackTrace) {
+        loading(false);
+        noTitleSnackBar(snackBarType: SnackBarType.error, message: "Terjadi kesalahan");
+      });
     }
   }
 
@@ -171,10 +186,31 @@ class AddController extends GetxController {
   }
 
   checkAllField() {
-    if (nameETCtrl.text.isEmpty && phoneNumberETCtrl.text.isEmpty && emailETCtrl.text.isEmpty && addressETCtrl.text.isEmpty) {
+    if (nameETCtrl.text.isEmpty ||
+        phoneNumberETCtrl.text.isEmpty ||
+        emailETCtrl.text.isEmpty ||
+        addressETCtrl.text.isEmpty ||
+        cityMenuSelected.id == null ||
+        (cityMenuSelected.id == "0" && otherETCtrl.text.isEmpty)) {
       setEnableButton(false);
     } else {
       setEnableButton(true);
+    }
+  }
+
+  ///displays loading dialog which blocks the ui
+  loading(
+    bool show, {
+    String? text,
+    EasyLoadingMaskType? maskType,
+  }) async {
+    if (show) {
+      BaseLoadingView.show(
+        text: text,
+        maskType: maskType,
+      );
+    } else {
+      BaseLoadingView.dismiss();
     }
   }
 }

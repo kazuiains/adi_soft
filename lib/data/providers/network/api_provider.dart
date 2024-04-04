@@ -75,7 +75,7 @@ class APIProvider {
         headers: request.headers,
         contentType: request.contentType,
         responseType: request.responseType,
-        validateStatus: (statusCode) => statusCode == 200,
+        validateStatus: (statusCode) => statusCode == 200 || statusCode == 201,
       );
 
       switch (request.method) {

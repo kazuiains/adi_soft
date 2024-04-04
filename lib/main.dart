@@ -21,7 +21,7 @@ Future _initMyApp() async {
 
   //flavor
   AppConfig(
-    flavor: Flavor.production,
+    flavor: Flavor.development,
   );
 
   //easy loading
