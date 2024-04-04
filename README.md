@@ -1,16 +1,19 @@
-# adi_soft
 
-A new Flutter project.
+# Adi Soft
 
-## Getting Started
+Aplikasi teknikal tes tentang user
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
+## Cara Penggunaan
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Buka aplikasi -> klik tombol tambah -> isi data -> klik tombol tambah -> selamat anda berhasil menambah user
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+## Teknologi yang digunakan
+
+Untuk membuat aplikasi ini anda cukup menggunakan: Flutter, dan android studio. untuk melihat api bisa gunakan postman.
+
+
+## Alasan UI seperti ini
+
+simple dan gampang di buat
